@@ -71,6 +71,30 @@ def api_item(qid):
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
 
+@app.route("/api/items")
+def api_items():
+    qids = request.args["qids"].split(",")
+    include_geojson = read_bool("geojson")
+    include_kml = read_bool("kml")
+
+    data = {}
+    for qid in qids:
+        hits = []
+        for hit in do_lookup(qid):
+            hit_dict = {"type": hit.type, "id": hit.id, "tags": hit.tags}
+            if include_geojson:
+                hit_dict["geojson"] = hit.geojson()
+            if include_kml:
+                hit_dict["kml"] = hit.kml
+            hits.append(hit_dict)
+        data[qid] = hits
+
+    response = jsonify(data)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
+
+
+
 
 @app.route("/")
 def index():
